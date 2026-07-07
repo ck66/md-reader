@@ -224,8 +224,6 @@ function configureMermaid(mermaid: any): void {
     startOnLoad: false,
     theme: isDark ? "dark" : "default",
     securityLevel: "strict",
-    flowchart: { htmlLabels: false },
-    class: { htmlLabels: false },
   });
 }
 
@@ -250,42 +248,6 @@ export async function renderMath(container: HTMLElement): Promise<void> {
       el.textContent = expr;
     }
   });
-}
-
-function sanitizeMermaidSvg(svg: string): string {
-  // Parse as SVG to preserve namespaces — needed for <rect> backgrounds
-  // on edge labels, <marker> arrowheads, etc.
-  const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
-  const root = doc.documentElement;
-  if (!root || root.nodeName === "parsererror") return "";
-  root.querySelectorAll("script").forEach((n) => n.remove());
-  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
-  const toStrip: { el: Element; name: string }[] = [];
-  let current: Node | null = root;
-  while (current) {
-    const el = current as Element;
-    if (el.attributes) {
-      for (const attr of Array.from(el.attributes)) {
-        const name = attr.name.toLowerCase();
-        const value = attr.value.trim().toLowerCase();
-        if (
-          name.startsWith("on") ||
-          ((name === "href" || name === "xlink:href") &&
-            value.startsWith("javascript:"))
-        ) {
-          toStrip.push({ el, name: attr.name });
-        }
-      }
-    }
-    current = walker.nextNode();
-  }
-  toStrip.forEach(({ el, name }) => el.removeAttribute(name));
-  // XMLSerializer produces <br/> (XML-style self-closing tag) which
-  // triggers "Opening and ending tag mismatch" inside Tauri/WebView2's
-  // libxml2-based HTML parser. Replace with HTML-safe <br>.
-  return new XMLSerializer()
-    .serializeToString(root)
-    .replace(/<br\b[^>]*\/>/gi, (m) => m.replace(/\/>$/i, ">"));
 }
 
 let mermaidIdCounter = 0;
@@ -313,7 +275,7 @@ export async function renderMermaid(
     const id = `mermaid-${Date.now()}-${mermaidIdCounter++}`;
     try {
       const { svg } = await mermaid.render(id, code);
-      el.innerHTML = sanitizeMermaidSvg(svg);
+      el.innerHTML = svg;
       el.classList.add("mermaid-rendered");
     } catch (e: any) {
       const pre = document.createElement("pre");
