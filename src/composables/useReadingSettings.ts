@@ -6,6 +6,7 @@ export interface ReadingSettings {
   lineHeight: number;
   maxWidth: number;
   fontFamily: string;
+  restoreTabs: boolean;
 }
 
 const FONT_KEYS = ["system", "sans", "serif", "mono"] as const;
@@ -39,6 +40,7 @@ function defaults(): ReadingSettings {
     lineHeight: 1.75,
     maxWidth: 900,
     fontFamily: "system",
+    restoreTabs: true,
   };
 }
 
@@ -80,6 +82,11 @@ function setFontFamily(v: string) {
   save();
 }
 
+function setRestoreTabs(v: boolean) {
+  settings.value.restoreTabs = v;
+  save();
+}
+
 function reset() {
   settings.value = defaults();
   save();
@@ -101,6 +108,7 @@ export function useReadingSettings() {
     setLineHeight,
     setMaxWidth,
     setFontFamily,
+    setRestoreTabs,
     reset,
   };
 }

@@ -61,6 +61,8 @@ const enUS = {
     serif: "Serif",
     mono: "Mono",
     reset: "Reset",
+    restoreTabs: "Restore last tabs on startup",
+    restoreTabsHint: "When checked, reopens files and restores scroll position from the last session. When unchecked, starts fresh each time.",
     updateCheck: "Software update",
     currentVersion: "Current version: {version}",
     checkUpdate: "Check for updates",

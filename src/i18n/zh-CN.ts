@@ -57,6 +57,8 @@ const zhCN = {
     serif: "衬线",
     mono: "等宽",
     reset: "恢复默认",
+    restoreTabs: "启动时恢复上次的标签页",
+    restoreTabsHint: "关闭后下次启动自动打开上次关闭时的文件列表和聚焦位置。关闭则每次启动显示空白页。",
     updateCheck: "软件更新",
     currentVersion: "当前版本：{version}",
     checkUpdate: "检查更新",

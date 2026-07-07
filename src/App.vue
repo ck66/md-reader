@@ -55,7 +55,7 @@ const {
 
 const watcher = useFileWatcher();
 const { pushRecent, saveScroll, getScroll } = useHistory();
-const { apply: applyReadingSettings } = useReadingSettings();
+const { apply: applyReadingSettings, settings } = useReadingSettings();
 const {
   tabs,
   activeTabId,
@@ -566,6 +566,13 @@ async function getInitialOpenFile(): Promise<string> {
 }
 
 async function restoreTabs(initialPath = "") {
+  if (!settings.value.restoreTabs) {
+    // Don't restore tabs — clear persisted data so old sessions don't leak.
+    localStorage.removeItem("md-reader-tabs");
+    localStorage.removeItem("md-reader-last-file");
+    if (initialPath) await loadFile(initialPath);
+    return;
+  }
   const persisted = loadPersisted();
   let paths: string[] = [];
   let activePath = "";
@@ -865,7 +872,9 @@ onUnmounted(() => {
 
 watch(
   () => tabs.value.map((tb) => tb.path).join("\n"),
-  () => persist()
+  () => {
+    if (settings.value.restoreTabs) persist();
+  }
 );
 
 watch(exportToast, (v) => {

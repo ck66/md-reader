@@ -150,6 +150,7 @@ const {
   setLineHeight,
   setMaxWidth,
   setFontFamily,
+  setRestoreTabs,
   reset,
 } = useReadingSettings();
 
@@ -231,6 +232,18 @@ async function registerAssociations() {
             {{ opt.label }}
           </option>
         </select>
+      </div>
+
+      <div class="row checkbox-row">
+        <label>
+          <input
+            type="checkbox"
+            :checked="settings.restoreTabs"
+            @change="(e) => setRestoreTabs((e.target as HTMLInputElement).checked)"
+          />
+          {{ t("settings.restoreTabs") }}
+        </label>
+        <span class="hint">{{ t("settings.restoreTabsHint") }}</span>
       </div>
 
       <div class="association">
@@ -366,6 +379,31 @@ select {
   color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 4px;
+}
+.checkbox-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.checkbox-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.checkbox-row .hint {
+  color: var(--fg-muted);
+  font-size: 12px;
+  padding-left: 24px;
 }
 .association {
   display: grid;

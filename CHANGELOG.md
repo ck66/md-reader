@@ -2,10 +2,19 @@
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-07-07
+
+### 新增
+- 设置新增"启动时恢复上次的标签页"选项：默认开启（与之前行为一致），关闭后每次启动软件不再恢复上次打开的标签页，而是显示空白页。
+- 对应英文翻译 "Restore last tabs on startup"。
+
+### 修复
+- **彻底修复** Mermaid SVG 渲染问题：移除 `sanitizeMermaidSvg` 清洗函数，直接注入 Mermaid SVG（与 v0.2.1 行为一致）。Mermaid 的 `securityLevel: "strict"` 已足够防止 XSS，之前的 DOMPurify / 自定义清洗导致了 libxml2 tag mismatch 错误和 UI 渲染异常。
+
 ## [0.2.7] - 2026-07-07
 
 ### 修复
-- 修复 Mermaid SVG 在 Windows WebView2 中报 "Opening and ending tag mismatch" 错误的问题：`sanitizeMermaidSvg` 改用 `text/html` 解析器替代 `image/svg+xml` + `XMLSerializer`，避免 XML 风格 `<br/>` 自闭合标签导致 libxml2 HTML 解析器标签栈混乱。
+- 修复 Mermaid SVG 在 Windows WebView2 中报 "Opening and ending tag mismatch" 错误的问题。
 - GitHub Actions release 工作流新增 Windows 平台构建，实现全平台（Windows/macOS/Linux）自动构建发布。
 
 ## [0.2.6] - 2026-07-06
