@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-07-07
+
+### 修复
+- 修复 Mermaid SVG 在 Windows WebView2 中报 "Opening and ending tag mismatch" 错误的问题：`sanitizeMermaidSvg` 改用 `text/html` 解析器替代 `image/svg+xml` + `XMLSerializer`，避免 XML 风格 `<br/>` 自闭合标签导致 libxml2 HTML 解析器标签栈混乱。
+- GitHub Actions release 工作流新增 Windows 平台构建，实现全平台（Windows/macOS/Linux）自动构建发布。
+
 ## [0.2.6] - 2026-07-06
 
 ### 修复

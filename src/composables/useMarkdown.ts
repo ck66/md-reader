@@ -253,8 +253,14 @@ export async function renderMath(container: HTMLElement): Promise<void> {
 }
 
 function sanitizeMermaidSvg(svg: string): string {
-  const doc = new globalThis.DOMParser().parseFromString(svg, "image/svg+xml");
-  const root = doc.documentElement;
+  // Use text/html to avoid XMLSerializer producing <br/> that
+  // confuses libxml2-based HTML parsers (Tauri/WebView2 on Windows).
+  const doc = new DOMParser().parseFromString(svg, "text/html");
+  const root =
+    doc.body.firstElementChild ||
+    (doc.body.childNodes.length > 0
+      ? (doc.body.childNodes[0] as Element)
+      : doc.body);
   if (!root || root.nodeName === "parsererror") return "";
   root.querySelectorAll("script").forEach((n) => n.remove());
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
@@ -268,7 +274,8 @@ function sanitizeMermaidSvg(svg: string): string {
         const value = attr.value.trim().toLowerCase();
         if (
           name.startsWith("on") ||
-          ((name === "href" || name === "xlink:href") && value.startsWith("javascript:"))
+          ((name === "href" || name === "xlink:href") &&
+            value.startsWith("javascript:"))
         ) {
           toStrip.push({ el, name: attr.name });
         }
@@ -277,7 +284,7 @@ function sanitizeMermaidSvg(svg: string): string {
     current = walker.nextNode();
   }
   toStrip.forEach(({ el, name }) => el.removeAttribute(name));
-  return new globalThis.XMLSerializer().serializeToString(root);
+  return (root as Element).outerHTML || svg;
 }
 
 let mermaidIdCounter = 0;
