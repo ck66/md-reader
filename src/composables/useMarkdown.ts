@@ -253,14 +253,10 @@ export async function renderMath(container: HTMLElement): Promise<void> {
 }
 
 function sanitizeMermaidSvg(svg: string): string {
-  // Use text/html to avoid XMLSerializer producing <br/> that
-  // confuses libxml2-based HTML parsers (Tauri/WebView2 on Windows).
-  const doc = new DOMParser().parseFromString(svg, "text/html");
-  const root =
-    doc.body.firstElementChild ||
-    (doc.body.childNodes.length > 0
-      ? (doc.body.childNodes[0] as Element)
-      : doc.body);
+  // Parse as SVG to preserve namespaces — needed for <rect> backgrounds
+  // on edge labels, <marker> arrowheads, etc.
+  const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+  const root = doc.documentElement;
   if (!root || root.nodeName === "parsererror") return "";
   root.querySelectorAll("script").forEach((n) => n.remove());
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
@@ -284,7 +280,12 @@ function sanitizeMermaidSvg(svg: string): string {
     current = walker.nextNode();
   }
   toStrip.forEach(({ el, name }) => el.removeAttribute(name));
-  return (root as Element).outerHTML || svg;
+  // XMLSerializer produces <br/> (XML-style self-closing tag) which
+  // triggers "Opening and ending tag mismatch" inside Tauri/WebView2's
+  // libxml2-based HTML parser. Replace with HTML-safe <br>.
+  return new XMLSerializer()
+    .serializeToString(root)
+    .replace(/<br\b[^>]*\/>/gi, (m) => m.replace(/\/>$/i, ">"));
 }
 
 let mermaidIdCounter = 0;
