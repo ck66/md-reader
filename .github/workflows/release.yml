@@ -15,17 +15,14 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            target: x86_64-pc-windows-msvc
             label: windows
             args: ""
             rust_targets: ""
           - platform: macos-latest
-            target: universal-apple-darwin
             label: macos
             args: "--target universal-apple-darwin"
             rust_targets: "aarch64-apple-darwin,x86_64-apple-darwin"
           - platform: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
             label: linux
             args: ""
             rust_targets: ""
@@ -34,6 +31,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install WiX (Windows MSI builder)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip" -OutFile "$env:RUNNER_TEMP\wix.zip"
+          Expand-Archive "$env:RUNNER_TEMP\wix.zip" -DestinationPath "$env:RUNNER_TEMP\wix"
+          echo "$env:RUNNER_TEMP\wix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -70,7 +75,7 @@ jobs:
       - name: Install frontend deps
         run: pnpm install --frozen-lockfile
 
-      - name: Build and upload
+      - name: Tauri build
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,13 +85,32 @@ jobs:
           releaseBody: |
             ## 修复
 
-            - 修复 Mermaid 流程图在 Windows 中 `<br/>` 标签导致 libxml2 解析报错的问题
-            - 全平台自动构建：Windows (.msi + .exe) / macOS (.dmg) / Linux (.AppImage + .deb + .rpm)
+            - 修复 Mermaid 流程图在 Windows WebView2 中 `<br/>` 标签导致 libxml2 解析报错："Opening and ending tag mismatch" 的问题
+            - `sanitizeMermaidSvg` 改用 `text/html` 解析器 + `outerHTML`，替代 `image/svg+xml` + `XMLSerializer`
 
-            ## 下载说明
+            ## 下载
 
-            - **Windows**: 下载 .msi 安装版或 portable .exe 绿色版
-            - **macOS / Linux**: 实验版，未签名；macOS 首次打开右键 → 打开，Linux AppImage 需先 `chmod +x`
-          releaseDraft: false
+            - **Windows**: `.msi` 安装版 / `.exe` 绿色便携版
+            - **macOS**: `.dmg` 安装包（实验版，未签名）
+            - **Linux**: `.AppImage` / `.deb` / `.rpm`（实验版，未签名）
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Upload portable exe (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $raw = "${{ github.ref_name }}" -replace '^v', ''
+          $portable = "MD-Reader-$raw-windows-x64-portable.exe"
+          $src = "src-tauri/target/release/md-reader.exe"
+          if (Test-Path $src) {
+            Copy-Item $src $portable
+            Write-Host "Portable exe ready: $portable ($((Get-Item $portable).Length) bytes)"
+            gh release upload "${{ github.ref_name }}" $portable --clobber
+          } else {
+            Write-Warning "Portable exe not found at $src"
+            Get-ChildItem src-tauri/target/release/ -Name | Out-String | Write-Host
+          }
