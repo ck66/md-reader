@@ -470,6 +470,8 @@ pub fn run() {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_theme(None);
                 apply_windows_frame_theme(&window, false);
+                // Show after plugins (window-state) have restored saved dimensions.
+                let _ = window.show();
             }
             let _ = app;
             Ok(())
