@@ -1245,6 +1245,7 @@ watch(exportToast, (v) => {
   background: var(--bg-btn);
   color: var(--fg);
   cursor: pointer;
+  white-space: nowrap;
 }
 .btn:hover {
   background: var(--bg-btn-hover);
