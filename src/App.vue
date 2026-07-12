@@ -1225,9 +1225,11 @@ watch(exportToast, (v) => {
   border-bottom: 1px solid var(--shell-toolbar-border);
   background: var(--shell-toolbar-bg);
   user-select: none;
+  overflow: hidden;
 }
 .filename {
   flex: 1 1 auto;
+  min-width: 0;
   font-size: 13px;
   color: var(--shell-filename-color);
   white-space: nowrap;
